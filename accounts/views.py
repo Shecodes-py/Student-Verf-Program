@@ -3,7 +3,7 @@ from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 # from rest_framework.generics import GenericAPIView
-from rest_framework.generics import CreateAPIView
+from rest_framework.generics import CreateAPIView, ListAPIView
 
 
 from .models import Student
@@ -27,13 +27,16 @@ class RegisterStudentView(CreateAPIView):
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED,)
 
-class SubmitTaskView(APIView):
+class SubmitTaskView(CreateAPIView):
     """
     POST /api/students/<student_id>/submit/
     Submit a task (GitHub URL) for a registered student.
     A student can only have one submission.
     """
 
+    serializer_class = TaskSubmissionSerializer
+    queryset = Student.objects.all()
+    
     def post(self, request, student_id):
         try:
             student = Student.objects.get(pk=student_id)
@@ -54,7 +57,7 @@ class SubmitTaskView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class StudentProfileView(APIView):
+class StudentProfileView(ListAPIView):
     """
     GET /api/students/<student_id>/profile/
     Retrieve a student's profile along with their submission status.
