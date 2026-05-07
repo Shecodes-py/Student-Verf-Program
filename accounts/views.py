@@ -2,6 +2,9 @@ from django.shortcuts import render
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
+# from rest_framework.generics import GenericAPIView
+from rest_framework.generics import CreateAPIView
+
 
 from .models import Student
 from .serializers import (StudentRegistrationSerializer, StudentProfileSerializer, TaskSubmissionSerializer,)
@@ -10,20 +13,19 @@ from .serializers import (StudentRegistrationSerializer, StudentProfileSerialize
 def index(request): 
     return render(request, 'index.html')
 
-
-class RegisterStudentView(APIView):
+class RegisterStudentView(CreateAPIView):
     """
     POST /api/students/register/
     Register a new student.
     """
-
+    serializer_class = StudentRegistrationSerializer    
+    queryset = Student.objects.all()
+    
     def post(self, request):
-        serializer = StudentRegistrationSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED,)
 
 class SubmitTaskView(APIView):
     """
